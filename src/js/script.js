@@ -3,9 +3,9 @@
 {
   'use strict';
 
-const select = {
-  templateOf: {
-    menuProduct: "#template-menu-product",
+  const select = {
+    templateOf: {
+      menuProduct: '#template-menu-product',
     },
     containerOf: {
       menu: '#product-list',
@@ -43,16 +43,68 @@ const select = {
   const settings = {
     amountWidget: {
       defaultValue: 1,
-      defaultMin: 0,
-      defaultMax: 10,
+      defaultMin: 1,
+      defaultMax: 9,
     }
   };
 
   const templates = {
     menuProduct: Handlebars.compile(document.querySelector(select.templateOf.menuProduct).innerHTML),
   };
+  class Product{
+    constructor(id, data){
+      const thisProduct = this;
+      thisProduct.id = id;
+      thisProduct.data = data;
+      thisProduct.renderInMenu();
+      thisProduct.initAccordion();
+      console.log('New Product: ', thisProduct);
+    }
+    renderInMenu(){
+      const thisProduct = this;
 
+      /* generate HTML based on template */
+      const generatedHTML = templates.menuProduct(thisProduct.data);
+      /* create element using utils.createElementFromHTML */
+      thisProduct.element = utils.createDOMFromHTML(generatedHTML);
+      /* find menu container */
+      const menuContainer = document.querySelector(select.containerOf.menu);
+      /* add element to menu */
+      menuContainer.appendChild(thisProduct.element);
+    }
+    initAccordion(){
+      const thisProduct = this;
+    /* find the clickable trigger (the element that should react to clicking) */
+      const clickableTrigger = thisProduct.element.querySelector(select.menuProduct.clickable);
+      console.log('Trigger: ', clickableTrigger);
+    /* START: add event listener to clickable trigger on event click */
+      clickableTrigger.addEventListener('click', function(event) {
+      /* prevent default action for event */
+        event.preventDefault();
+      /* find active product (product that has active class) */
+        const ActiveProduct = document.querySelector(select.all.menuProductsActive);
+        console.log('Active: ', ActiveProduct);
+      /* if there is active product and it's not thisProduct.element, remove class active from it */
+        if (ActiveProduct != null && ActiveProduct != thisProduct.element){
+          ActiveProduct.classList.remove(classNames.menuProduct.wrapperActive);
+        }
+      /* toggle active class on thisProduct.element */
+        thisProduct.element.classList.toggle(classNames.menuProduct.wrapperActive);
+      });
+    }
+  }
   const app = {
+    initMenu: function(){
+      const thisApp = this;
+      console.log('thisAppdata: ', thisApp.data);
+      for (let productData in thisApp.data.products){
+        new Product(productData, thisApp.data.products[productData]);
+      }
+    },
+    initData: function(){
+      const thisApp = this;
+      thisApp.data = dataSource;
+    },
     init: function(){
       const thisApp = this;
       console.log('*** App starting ***');
@@ -60,8 +112,9 @@ const select = {
       console.log('classNames:', classNames);
       console.log('settings:', settings);
       console.log('templates:', templates);
+      thisApp.initData();
+      thisApp.initMenu();
     },
-  };
-
+  }
   app.init();
 }
